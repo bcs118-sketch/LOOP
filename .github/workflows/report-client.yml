@@ -1,0 +1,30 @@
+name: Report client contract tests
+on:
+  push:
+    branches: [integration/report-client]
+  pull_request:
+    paths:
+      - 'integration/**'
+      - 'tests/report-client.test.mjs'
+      - '.github/workflows/report-client.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  local-contract-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Fetch this public repository commit without credentials
+        env:
+          REPOSITORY: ${{ github.repository }}
+          COMMIT: ${{ github.sha }}
+        run: |
+          git init .
+          git remote add origin "https://github.com/${REPOSITORY}.git"
+          git fetch --depth=1 origin "$COMMIT"
+          git checkout --detach FETCH_HEAD
+      - name: Run local contract tests, not production or agency requests
+        run: |
+          node --version
+          node --test tests/report-client.test.mjs
